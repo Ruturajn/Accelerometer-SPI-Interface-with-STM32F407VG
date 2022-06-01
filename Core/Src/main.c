@@ -41,7 +41,7 @@ uint16_t SPI_Transmit(uint8_t data);
 uint16_t SPI_Receive(uint8_t addr);
 void LIS_Init(void);
 void LIS_Write(uint8_t addr, uint8_t data);
-void LIS_Read();
+void LIS_Read(void);
 int16_t Convert_To_Val(uint16_t val);
 void TIM4_ms_Delay(uint16_t delay);
 
