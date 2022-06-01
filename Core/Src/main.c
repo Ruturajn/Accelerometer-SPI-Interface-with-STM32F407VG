@@ -67,9 +67,6 @@ void GPIO_Init(){
 	// Since PE3 is CS, it needs to be configured in Output Mode
 	GPIOE->MODER |= GPIO_MODER_MODER3_0;
 
-	// And, PE0 is the Interrupt Pin, it needs to be configured as a Output
-	//GPIOE->MODER |= GPIO_MODER_MODER0_0;
-
 	GPIOA->OSPEEDR |= ( GPIO_OSPEEDER_OSPEEDR5_0 | GPIO_OSPEEDER_OSPEEDR6_0 |
 			            GPIO_OSPEEDER_OSPEEDR7_0);
 
