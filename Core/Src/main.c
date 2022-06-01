@@ -49,7 +49,6 @@ void TIM4_ms_Delay(uint16_t delay);
 uint16_t x,y,z;
 int16_t x_final, y_final, z_final;
 uint16_t rxd,rxdf;
-uint16_t sbits, ovr_flag = 0;
 
 void GPIO_Init(){
 	// Enable GPIOA clock
