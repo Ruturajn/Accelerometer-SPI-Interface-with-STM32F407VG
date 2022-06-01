@@ -34,7 +34,6 @@
 #define THRESH_HIGH 120
 
 //User-defined Function Declarations
-void RCC_Init(void);
 void GPIO_Init(void);
 void SPI_Init(void);
 uint16_t SPI_Transmit(uint8_t data);
