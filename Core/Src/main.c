@@ -77,12 +77,6 @@ void GPIO_Init(){
 
 	GPIOA->PUPDR |= (GPIO_PUPDR_PUPD5_1 | GPIO_PUPDR_PUPD6_1 | GPIO_PUPDR_PUPD7_1);
 
-	// Setting up the external interrupt on PE0, instead of PA0
-	// which is the default.
-	//RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-	//SYSCFG->PMC |= SYSCFG_PMC_MII_RMII_SEL; //Enable PHY for Ethernet (Needs to be done for EXTI)
-	//SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PE;// Enable EXTI1 on PH1
-
 	// Enable clock for GPIOD and Configure PD12 in output mode
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN;
 	GPIOD->MODER |= (GPIO_MODER_MODER12_0 | GPIO_MODER_MODER13_0 | GPIO_MODER_MODER14_0 | GPIO_MODER_MODER15_0);
@@ -106,21 +100,19 @@ void SPI_Init(){
 	// to '1'
 	SPI1->CR1 |= (SPI_CR1_SSI | SPI_CR1_SSM);
 
-	// Setting the Baud rate to 1Mbps
-	// Baud Rate = 1/Nominal_Bit_Time = 1/(1/f)
-	// f = f_PCLK/16 is selected here. So, f = 1MHz.
-	//SPI1->CR1 |= (SPI_CR1_BR_1); //| SPI_CR1_BR_0);
+	// Setting Baud Rate
 	SPI1->CR1 &= ~SPI_CR1_BR;
 
 	// Set the transmission to MSB First Mode
 	SPI1->CR1 &= ~SPI_CR1_LSBFIRST;
 
-	// Configure CPOL and CPHASE to '1' and '1', respectively.
-	// i.e. Clock is at '1' when idle, and data capture is done
-	// on the second clock transition which is the rising edge.
+	// Configure CPOL and CPHASE to '0' and '0', respectively.
+	// i.e. Clock is at '0' when idle, and data capture is done
+	// on the first clock transition which is the rising edge.
 	SPI1->CR1 &= ~SPI_CR1_CPHA;
 	SPI1->CR1 &= ~SPI_CR1_CPOL;
 
+	// Enable CRC
 	SPI1->CR1 |= SPI_CR1_CRCEN;
 
 	// Enable SPI
@@ -132,10 +124,6 @@ void SPI_Init(){
 
 uint16_t SPI_Transmit(uint8_t data){
 	//  Wait until the TX buffer is empty, i.e. data is transmitted
-	//while((SPI1->SR) & (SPI_SR_BSY)){}
-
-	//SPI1->DR = data;
-
 	while(!((SPI1->SR) & SPI_SR_TXE)){}
 	// Load the data into the data register
 	SPI1->DR = data;
@@ -171,14 +159,8 @@ void LIS_Write(uint8_t addr,uint8_t data){
 }
 
 void LIS_Init(){
-	// Powering on the accelerometer
+	// Powering on the accelerometer and Enabling the x,y and z axis for acceleration capture
 	LIS_Write(CTRL_REG1, 0x47);
-
-	// Enabling the x,y and z axis for acceleration capture
-	//LIS_Write(CTRL_REG1, 0x07);
-
-	// Enabling the INT1 for data ready signal using the I1CFG[2:0] bits
-	//LIS_Write(CTRL_REG3, 0x04);
 }
 
 void LIS_Read(){
@@ -220,11 +202,14 @@ int main(void){
 	LIS_Init();
 	GPIOE->BSRR |= GPIO_BSRR_BS3;
 	while(1){
+		// Call the read function
 		LIS_Read();
 
+		// Use the Convert_To_Val function to convert raw data into actual data
 		x_final = Convert_To_Val(x) + X_OFFSET;
 		y_final = Convert_To_Val(y);
 
+		// Switch on LEDs based on the acceleration value obtained
 		if ((x_final != 0) && (y_final != 0)){
 			if (x_final > THRESH_HIGH){
 				GPIOD->ODR |= GPIO_ODR_OD14;
@@ -246,6 +231,7 @@ int main(void){
 		else
 			GPIOD->ODR &= ~(GPIO_ODR_OD12 | GPIO_ODR_OD13 | GPIO_ODR_OD14 | GPIO_ODR_OD15);
 
+		// Give a finite delay
 		TIM4_ms_Delay(20);
 	}
 }
